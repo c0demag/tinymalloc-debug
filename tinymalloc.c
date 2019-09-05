@@ -129,7 +129,7 @@ void check_range_and_call_sbrk(void *addr, size_t sz)
 
   if(((unsigned long) addr + (unsigned long)sz) > cur_sbrk  )
   {
-      fprintf(stderr, "out of memory!");
+      fprintf(stderr, "out of memory!\n");
       abort();
   }
   //printf("tmalloc start = 0x%lx and tmalloc end = 0x%lx and tmalloc chunk addr = 0x%lx \n",(unsigned long)__tmalloc_start, (unsigned long)__tmalloc_end, (unsigned long)addr );

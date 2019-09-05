@@ -4,7 +4,8 @@
 #include <cstdlib>
 #include <map>
 
-#define SIZE (1048576*16)
+#define SIZE (1048576*128)
+#define MAX_SIZE 65535
 extern "C" {
 
 fle __tmalloc_freelist = 0;
@@ -33,9 +34,9 @@ int main(int argc, char* argv[])
   init_tmalloc();
   std::map<unsigned, buffer> bufs;
 
-  const int ALLOC = 0, VERIF = 1, DEALLOC = 2;
+  const int ALLOC = 0, REALLOC = 1, DEALLOC = 2;
 
-  for(unsigned i=0; i != 10000; i++) {
+  for(unsigned i=0; i != 100000; i++) {
     const int op = rand() % 3;
     if (op == ALLOC) {
       unsigned id = rand();
@@ -62,6 +63,25 @@ int main(int argc, char* argv[])
         assert(buf.data[i] == (unsigned short)(buf.size + i));
       }
       tfree(buf.data);
+    } else if(op == REALLOC) {
+      if (bufs.size() == 0) continue;
+      auto it = bufs.begin();
+      unsigned id = it->first;
+      buffer buf = it->second;
+      bufs.erase(it);
+      unsigned short new_size = rand() % 65535;
+      std::cout << "realloc[" << id << "]; size=" << buf.size 
+                << "; new_size: " << new_size << std::endl;
+      for (unsigned i=0; i != buf.size; i++) {
+        assert(buf.data[i] == (unsigned short)(buf.size + i));
+      }
+      buf.data = (unsigned short*) trealloc(buf.data, new_size * sizeof(unsigned short));
+      if (buf.data == NULL) continue;
+      buf.size = new_size;
+      for (unsigned i=0; i != buf.size; i++) {
+        buf.data[i] = (unsigned short)(buf.size + i);
+      }
+      bufs[id] = buf;
     }
   }
   return 0;
